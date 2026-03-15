@@ -11,7 +11,7 @@ final class TaskListViewController: UIViewController {
         view.backgroundColor = .systemGroupedBackground
         setupTableView()
         setupAddButton()
-        loadSampleTasks()
+        loadTasks()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -41,20 +41,19 @@ final class TaskListViewController: UIViewController {
         )
     }
 
-    private func loadSampleTasks() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        tasks = [
-            Task(title: "Review design", taskType: .work, dueDate: formatter.date(from: "2026-02-01 10:00") ?? Date()),
-            Task(title: "Buy groceries", taskType: .shopping, dueDate: formatter.date(from: "2026-02-05 18:00") ?? Date()),
-            Task(title: "Call dentist", taskType: .personal, dueDate: formatter.date(from: "2026-02-10 14:00") ?? Date())
-        ]
+    private func loadTasks() {
+        tasks = TaskStorage.shared.loadTasks()
+    }
+
+    private func persistTasks() {
+        TaskStorage.shared.saveTasks(tasks)
     }
 
     @objc private func addTapped() {
         let addVC = AddEditTaskViewController()
         addVC.onSave = { [weak self] task in
             self?.tasks.append(task)
+            self?.persistTasks()
             self?.tableView.reloadData()
         }
         let nav = UINavigationController(rootViewController: addVC)
@@ -66,11 +65,13 @@ final class TaskListViewController: UIViewController {
         detailVC.onUpdate = { [weak self] updated in
             guard let self = self, index < self.tasks.count else { return }
             self.tasks[index] = updated
+            self.persistTasks()
             self.tableView.reloadData()
         }
         detailVC.onDelete = { [weak self] in
             guard let self = self, index < self.tasks.count else { return }
             self.tasks.remove(at: index)
+            self.persistTasks()
             self.tableView.reloadData()
         }
         navigationController?.pushViewController(detailVC, animated: true)
@@ -91,6 +92,7 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
         cell.onToggleComplete = { [weak self] in
             guard let self = self else { return }
             self.tasks[indexPath.row].isCompleted.toggle()
+            self.persistTasks()
             self.tableView.reloadRows(at: [indexPath], with: .none)
         }
         return cell

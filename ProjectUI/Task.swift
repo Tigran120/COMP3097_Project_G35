@@ -13,7 +13,7 @@ enum TaskDueStatus {
     case upcoming
 }
 
-struct Task: Identifiable {
+struct Task: Identifiable, Codable {
     let id: UUID
     var title: String
     var taskType: TaskType
