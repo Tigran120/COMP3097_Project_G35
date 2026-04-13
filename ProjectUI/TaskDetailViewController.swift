@@ -2,9 +2,9 @@ import UIKit
 
 final class TaskDetailViewController: UIViewController {
 
-    private var task: Task
+    private var task: TodoTask
     private let taskIndex: Int
-    var onUpdate: ((Task) -> Void)?
+    var onUpdate: ((TodoTask) -> Void)?
     var onDelete: (() -> Void)?
 
     private let scrollView = UIScrollView()
@@ -61,27 +61,17 @@ final class TaskDetailViewController: UIViewController {
 
     private let editButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("Edit", for: .normal)
-        b.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        b.backgroundColor = .systemBlue
-        b.setTitleColor(.white, for: .normal)
-        b.layer.cornerRadius = 10
         b.translatesAutoresizingMaskIntoConstraints = false
         return b
     }()
 
     private let deleteButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("Delete", for: .normal)
-        b.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        b.backgroundColor = .systemRed
-        b.setTitleColor(.white, for: .normal)
-        b.layer.cornerRadius = 10
         b.translatesAutoresizingMaskIntoConstraints = false
         return b
     }()
 
-    init(task: Task, taskIndex: Int) {
+    init(task: TodoTask, taskIndex: Int) {
         self.task = task
         self.taskIndex = taskIndex
         super.init(nibName: nil, bundle: nil)
@@ -93,10 +83,41 @@ final class TaskDetailViewController: UIViewController {
         super.viewDidLoad()
         title = "Task Details"
         view.backgroundColor = .systemBackground
+        applyDetailButtonStyles()
         setupLayout()
         refreshDisplay()
         editButton.addTarget(self, action: #selector(editTapped), for: .touchUpInside)
         deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
+    }
+
+    private func applyDetailButtonStyles() {
+        var editConfig = UIButton.Configuration.filled()
+        editConfig.title = "Edit"
+        editConfig.image = UIImage(systemName: "pencil")
+        editConfig.imagePadding = 8
+        editConfig.baseBackgroundColor = .systemBlue
+        editConfig.baseForegroundColor = .white
+        editConfig.cornerStyle = .large
+        editConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 17, weight: .semibold)
+            return out
+        }
+        editButton.configuration = editConfig
+
+        var delConfig = UIButton.Configuration.filled()
+        delConfig.title = "Delete"
+        delConfig.image = UIImage(systemName: "trash")
+        delConfig.imagePadding = 8
+        delConfig.baseBackgroundColor = .systemRed
+        delConfig.baseForegroundColor = .white
+        delConfig.cornerStyle = .large
+        delConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 17, weight: .semibold)
+            return out
+        }
+        deleteButton.configuration = delConfig
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -167,17 +188,22 @@ final class TaskDetailViewController: UIViewController {
 
     private func refreshDisplay() {
         titleLabel.text = task.title
-        let status = Task.dueStatus(for: task.dueDate)
-        switch status {
-        case .overdue:
-            statusLabel.text = "🔴 Overdue"
-            statusLabel.textColor = .systemRed
-        case .dueSoon:
-            statusLabel.text = "🟡 Due soon"
-            statusLabel.textColor = .systemOrange
-        case .upcoming:
-            statusLabel.text = "🟢 Upcoming"
+        if task.isCompleted {
+            statusLabel.text = "✓ Completed"
             statusLabel.textColor = .systemGreen
+        } else {
+            let status = TodoTask.dueStatus(for: task.dueDate)
+            switch status {
+            case .overdue:
+                statusLabel.text = "🔴 Overdue"
+                statusLabel.textColor = .systemRed
+            case .dueSoon:
+                statusLabel.text = "🟡 Due soon"
+                statusLabel.textColor = .systemOrange
+            case .upcoming:
+                statusLabel.text = "🟢 Upcoming"
+                statusLabel.textColor = .systemGreen
+            }
         }
         typeLabel.text = "Type: \(task.taskType.rawValue)"
         let formatter = DateFormatter()

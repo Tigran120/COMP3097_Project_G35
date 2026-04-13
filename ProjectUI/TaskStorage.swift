@@ -15,19 +15,19 @@ final class TaskStorage {
 
     private init() {}
 
-    func loadTasks() -> [Task] {
+    func loadTasks() -> [TodoTask] {
         guard let url = tasksURL, fileManager.fileExists(atPath: url.path) else {
             return []
         }
         do {
             let data = try Data(contentsOf: url)
-            return try decoder.decode([Task].self, from: data)
+            return try decoder.decode([TodoTask].self, from: data)
         } catch {
             return []
         }
     }
 
-    func saveTasks(_ tasks: [Task]) {
+    func saveTasks(_ tasks: [TodoTask]) {
         guard let url = tasksURL else { return }
         do {
             let data = try encoder.encode(tasks)

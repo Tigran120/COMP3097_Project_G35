@@ -2,8 +2,8 @@ import UIKit
 
 final class AddEditTaskViewController: UIViewController {
 
-    var existingTask: Task?
-    var onSave: ((Task) -> Void)?
+    var existingTask: TodoTask?
+    var onSave: ((TodoTask) -> Void)?
 
     private let scrollView = UIScrollView()
     private let contentView = UIView()
@@ -60,11 +60,6 @@ final class AddEditTaskViewController: UIViewController {
 
     private let saveButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("Save", for: .normal)
-        b.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        b.backgroundColor = .systemBlue
-        b.setTitleColor(.white, for: .normal)
-        b.layer.cornerRadius = 10
         b.translatesAutoresizingMaskIntoConstraints = false
         return b
     }()
@@ -75,6 +70,20 @@ final class AddEditTaskViewController: UIViewController {
         super.viewDidLoad()
         title = existingTask == nil ? "Add Task" : "Edit Task"
         view.backgroundColor = .systemBackground
+        datePicker.tintColor = .systemBlue
+        var saveConfig = UIButton.Configuration.filled()
+        saveConfig.title = "Save"
+        saveConfig.image = UIImage(systemName: "checkmark.circle.fill")
+        saveConfig.imagePadding = 8
+        saveConfig.baseBackgroundColor = .systemBlue
+        saveConfig.baseForegroundColor = .white
+        saveConfig.cornerStyle = .large
+        saveConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var out = incoming
+            out.font = .systemFont(ofSize: 17, weight: .semibold)
+            return out
+        }
+        saveButton.configuration = saveConfig
         typePicker.delegate = self
         typePicker.dataSource = self
         setupLayout()
@@ -166,9 +175,9 @@ final class AddEditTaskViewController: UIViewController {
             present(alert, animated: true)
             return
         }
-        let task: Task
+        let task: TodoTask
         if let existing = existingTask {
-            task = Task(
+            task = TodoTask(
                 id: existing.id,
                 title: title,
                 taskType: selectedType,
@@ -177,7 +186,7 @@ final class AddEditTaskViewController: UIViewController {
                 notes: notesField.text?.isEmpty == true ? nil : notesField.text
             )
         } else {
-            task = Task(
+            task = TodoTask(
                 title: title,
                 taskType: selectedType,
                 dueDate: datePicker.date,
